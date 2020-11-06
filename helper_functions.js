@@ -62,54 +62,28 @@ function compare(poly1, poly2){
         leastDist = dist;
     }
     
-    if(leastDist > 20)
+    if(leastDist > 10)
       return false;
   }
   return true;
-}
-
-function comparePoint(poly1, point, scale){
-  // This goes through all of the polygon points and computes the distance.
-  // If the min distance is greater than 20, then the shapes do not overlap at all or enough.
-  for(let i = 0; i < poly1.length; i++){
-    let leastDist = Infinity;
-      let dist = sqrt((poly1[i].x-point.x)**2 + (poly1[i].y-point.y)**2);
-    console.log(dist);
-    console.log(scale);
-    
-    if(dist > scale+20)
-      return false;
-  }
-  return true;
-}
-
-/**
-  Rotate a point around a center.
-  
-  @param {Vector2} point - The point to rotate
-  @param {Vector2} center - The center to rotate around
-  @param {Number} angle - The angle to rotate by (in radians).
-*/
-function rotatePointAround(point, center, angle){
-  angle *= -1;
-  return new Vector2(
-  cos(angle) * (point.getX() - center.getX()) - sin(angle) * (point.getY() - center.getY()) + center.getX(),
-    sin(angle) * (point.getX() - center.getX()) - cos(angle) * (point.getY() - center.getY()) + center.getY()
-  );
-}
-
-function rotatePointsAround(pointArray, center, angle){
-  let output = [];
-  for(let point of pointArray){
-    output.push(rotatePointAround(point, center, angle));
-  }
-  return output;
 }
 
 function addToPoints(pointArray, vec){
   let output = [];
   for(let point of pointArray){
     output.push(point.add(vec.x, vec.y));
+  }
+  return output;
+}
+
+function transformPoints(points, translation, rotation, scale){
+  let transformer = new AffineTransformation();
+  transformer.translate(translation);
+  transformer.scale(scale);
+  transformer.rotate(rotation);
+  let output = [];
+  for(let point of points){
+    output.push(transformer.transform(point));
   }
   return output;
 }

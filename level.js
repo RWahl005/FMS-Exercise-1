@@ -14,71 +14,25 @@ class Level{
     (I am going to call this code "Good Enough")
   */
   isCollidingPointWithObject(vec2){
-    // This does the Separated Axis Therom against the transformed The user polygon
-    // The second polygon is a small cube that represents the mouse which the
-    // deltaScale of the player is subtracted from and then the cube is rotated
-    // by the player's rotation.
-    // let colliding =  SAT(this.uPPoly, rotatePointsAround(addToPoints([vec2.add(2,2), vec2.add(-2,2), vec2.add(2,-2), vec2.add(-2, -2)], new Vector2(-(this.player.getSize().getX() * this.player.getScale().getX())/2,
-    // -(this.player.getSize().getY() * this.player.getScale().getY())/2)), vec2, this.player.rotation));
-    
-    console.log(rotatePointsAround(addToPoints([vec2.add(2,2), vec2.add(-2,2), vec2.add(2,-2), vec2.add(-2, -2)], new Vector2(-(this.player.getSize().getX() * this.player.getScale().getX())/2,
-     -(this.player.getSize().getY() * this.player.getScale().getY())/2)), vec2, this.player.rotation));
-    console.log(addToPoints([vec2.add(2,2), vec2.add(-2,2), vec2.add(2,-2), vec2.add(-2, -2)], new Vector2(-(this.player.getSize().getX() * this.player.getScale().getX())/2,
-     -(this.player.getSize().getY() * this.player.getScale().getY())/2)));
-    
-    let colliding =  SAT(this.uPPoly, addToPoints([vec2.add(2,2), vec2.add(-2,2), vec2.add(2,-2), vec2.add(-2, -2)], new Vector2(-(this.player.getSize().getX() * this.player.getScale().getX())/2,
-    -(this.player.getSize().getY() * this.player.getScale().getY())/2)));
-    // colliding = comparePoint(this.uPPoly, vec2, this.player.getScale().getX() * this.player.getSize().getX());
-    return colliding;
+    let vec = transformPoints([new Vector2(2,2), new Vector2(-2,2), new Vector2(2,-2), new Vector2(-2, -2)], vec2, this.player.rotation, new Vector2(1.3, 1.3));
+    return SAT(this.uPPoly, vec);
   }
   
   /**
     Move the player to the specified positon.
   */
   playerGoto(vec2){
-    let rotatedScale = rotatePointAround(
-      new Vector2((this.player.getSize().getX() * this.player.getScale().getX())/2,
-    (this.player.getSize().getY() * this.player.getScale().getY())/2), new Vector2(0,0),     this.player.rotation);
-    this.player.setPosition(
-      new Vector2(
-        (vec2.getX() - rotatedScale.x),
-        (vec2.getY() - rotatedScale.y)
-      )
-    );
+    this.player.position = new Vector2(vec2.x, vec2.y);
   }
   
     /**
     Handles generic updates for the level.
   */
   update(){
-    // This loops through the player polygon positions and transforms them
-    // according to the 2d transformation matrix for the mesh.
-    // uPPoly holds this result.
-    // This calculus might be a little scuffed.
-    for(let i = 0; i < this.playerPoly.length; i++){
-      let playerPolyScale = new Vector2(this.playerPoly[i].x * this.player.scale.x,
-                                    this.playerPoly[i].y * this.player.scale.y);
-      // Rotate and transform the object.
-      this.uPPoly[i] = new Vector2(
-        ((playerPolyScale.x * cos(this.player.rotation)) - (playerPolyScale.y * sin(this.player.rotation)) + this.player.getPosition().x),
-        ((playerPolyScale.x * sin(this.player.rotation)) - (playerPolyScale.y * cos(this.player.rotation)) + this.player.getPosition().y)
-      );
-      // scale the object.
-    }
-    
-    // Just like above, the winning polygon points are transformed according to
-    // the win mesh 2d transformation matrix.
-    for(let i = 0; i < this.winPoly.length; i++){
-      let winPolyScale = new Vector2(this.winPoly[i].x * this.win.scale.x,
-                                    this.winPoly[i].y * this.win.scale.y);
-      this.uWinPoly[i] = new Vector2(
-        ((winPolyScale.x * cos(this.win.rotation)) - (winPolyScale.y * sin(this.win.rotation)) + this.win.getPosition().x),
-        ((winPolyScale.x * sin(this.win.rotation)) - (winPolyScale.y * cos(this.win.rotation)) + this.win.getPosition().y)
-      );
-    }
-    // console.log(SAT(this.uPPoly, this.uWinPoly));
-    // This is a debug message. This will be replaced by a you win and next level.
-    // console.log(compare(this.uPPoly, this.uWinPoly));
+
+    this.uPPoly = transformPoints(this.playerPoly, this.player.position, this.player.rotation, this.player.scale);
+    this.uWinPoly = transformPoints(this.winPoly, this.win.position, this.win.rotation, this.win.scale);
+
   }
   
   getPlayerMesh(){
@@ -192,14 +146,14 @@ class LevelThree extends Level{
     this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
     this.player.setScale(new Vector2(randomSize, randomSize));
     
-    this.player.setRotation(random(0, 270));
+    this.player.setRotation(radians(random(180, 270)));
     
     // Sets the winner to a rectangle mesh.
     this.win = new RectangleMesh(new Vector2(0, 0), 
                                    0, new Vector2(10, 10));
     // Sets the scale of the win object.
     this.win.setScale(new Vector2(randomSize, randomSize));
-    this.win.setRotation(20);
+    this.win.setRotation(radians(random(50, 140)));
     // The list of points for a square with a size of 10.
     this.playerPoly = [
       new Vector2(0, 0),
@@ -215,6 +169,384 @@ class LevelThree extends Level{
       new Vector2(10, 10)
     ];
     
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+
+/**
+===============================================
+                   Level 4
+===============================================
+*/
+class LevelFour extends Level{
+  constructor(){
+    // Defines the time and name of the level.
+    super(55, "Level 4");
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new TriangleMesh(new Vector2(0, 0), 
+                                   0, new Vector2(10, 10));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    this.player.setRotation(random(0, 270));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new TriangleMesh(new Vector2(0, 0), 
+                                   0, new Vector2(10, 10));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    this.win.setRotation(20);
+    // The list of points for a square with a size of 10.
+    this.playerPoly = [
+      new Vector2(0, 10),
+      new Vector2(5, 0),
+      new Vector2(10, 10)
+    ];
+    // The list of points for a square with a size of 10.
+    this.winPoly = [
+      new Vector2(0, 10),
+      new Vector2(5, 0),
+      new Vector2(10, 10)
+    ];
+    
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+
+/**
+===============================================
+                   Level 5
+===============================================
+*/
+class LevelFive extends Level{
+  constructor(){
+    // Defines the time and name of the level.
+    super(20, "Level 5");
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new TriangleMesh(new Vector2(0, 0), 
+                                   0, new Vector2(10, 10));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    this.player.setRotation(random(0, 270));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new TriangleMesh(new Vector2(0, 0), 
+                                   0, new Vector2(10, 10));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    this.win.setRotation(20);
+    // The list of points for a square with a size of 10.
+    this.playerPoly = [
+      new Vector2(0, 10),
+      new Vector2(5, 0),
+      new Vector2(10, 10)
+    ];
+    // The list of points for a square with a size of 10.
+    this.winPoly = [
+      new Vector2(0, 10),
+      new Vector2(5, 0),
+      new Vector2(10, 10)
+    ];
+    
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+/**
+===============================================
+                   Level 6
+===============================================
+*/
+class LevelSix extends Level {
+  constructor(){
+    // Defines the time and name of the level.
+    super(45, "Level 6");
+    
+    
+    this.playerPoly = [
+      new Vector2(0, 0),
+      new Vector2(0, 4),
+      new Vector2(5, 7),
+      new Vector2(9, 3)
+    ];
+    this.winPoly = [
+      new Vector2(0, 0),
+      new Vector2(0, 4),
+      new Vector2(5, 7),
+      new Vector2(9, 3)
+    ];
+    
+    
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new QuadMesh(this.playerPoly, new Vector2(0, 0));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    //this.player.setRotation(random(0, 270));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new QuadMesh(this.winPoly, new Vector2(0, 0));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    //this.win.setRotation(20);
+
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+
+/**
+===============================================
+                   Level 7
+===============================================
+*/
+class LevelSeven extends Level {
+  constructor(){
+    // Defines the time and name of the level.
+    super(45, "Level 7");
+    
+    
+    this.playerPoly = [
+      new Vector2(0, 0),
+      new Vector2(0, 4),
+      new Vector2(5, 7),
+      new Vector2(9, 3)
+    ];
+    this.winPoly = [
+      new Vector2(0, 0),
+      new Vector2(0, 4),
+      new Vector2(5, 7),
+      new Vector2(9, 3)
+    ];
+    
+    
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new QuadMesh(this.playerPoly, new Vector2(0, 0));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    this.player.setRotation(radians(random(0, 270)));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new QuadMesh(this.winPoly, new Vector2(0, 0));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    this.win.setRotation(radians(random(45, 45+90)));
+
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+
+/**
+===============================================
+                   Level 8
+===============================================
+*/
+class LevelEight extends Level {
+  constructor(){
+    // Defines the time and name of the level.
+    super(45, "Level 8");
+    
+    
+    this.playerPoly = [
+      new Vector2(-1, -2),
+      new Vector2(1, 7),
+      new Vector2(13, 5),
+      new Vector2(11, -5)
+    ];
+    this.winPoly = [
+      new Vector2(-1, -2),
+      new Vector2(1, 7),
+      new Vector2(13, 5),
+      new Vector2(11, -5)
+    ];
+    
+    
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new QuadMesh(this.playerPoly, new Vector2(0, 0));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    //this.player.setRotation(random(0, 270));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new QuadMesh(this.winPoly, new Vector2(0, 0));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    this.win.setRotation(radians(random(50, 250)));
+
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+
+/**
+===============================================
+                   Level 9
+===============================================
+*/
+class LevelNine extends Level {
+  constructor(){
+    // Defines the time and name of the level.
+    super(45, "Level 9");
+    let a = random(3, 7);
+    
+    
+    this.playerPoly = [
+      new Vector2(a, 0),
+      new Vector2(a * cos(radians(60)), a * sin(radians(60))),
+      new Vector2(a * cos(radians(120)), a * sin(radians(120))),
+      new Vector2(-a, 0),
+      new Vector2(a * cos(radians(240)), a * sin(radians(240))),
+      new Vector2(a * cos(radians(300)), a * sin(radians(300))),
+    ];
+    this.winPoly = [
+      new Vector2(a, 0),
+      new Vector2(a * cos(radians(60)), a * sin(radians(60))),
+      new Vector2(a * cos(radians(120)), a * sin(radians(120))),
+      new Vector2(-a, 0),
+      new Vector2(a * cos(radians(240)), a * sin(radians(240))),
+      new Vector2(a * cos(radians(300)), a * sin(radians(300))),
+    ];
+    
+    
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new HexMesh(a, new Vector2(0, 0));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    //this.player.setRotation(random(0, 270));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new HexMesh(a, new Vector2(0, 0));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    //this.win.setRotation(20);
+
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+
+/**
+===============================================
+                   Level 10
+===============================================
+*/
+class LevelTen extends Level {
+  constructor(){
+    // Defines the time and name of the level.
+    super(30, "Level 10");
+    let a = random(5, 8);
+    
+    
+    this.playerPoly = [
+      new Vector2(a, 0),
+      new Vector2(a * cos(radians(60)), a * sin(radians(60))),
+      new Vector2(a * cos(radians(120)), a * sin(radians(120))),
+      new Vector2(-a, 0),
+      new Vector2(a * cos(radians(240)), a * sin(radians(240))),
+      new Vector2(a * cos(radians(300)), a * sin(radians(300))),
+    ];
+    this.winPoly = [
+      new Vector2(a, 0),
+      new Vector2(a * cos(radians(60)), a * sin(radians(60))),
+      new Vector2(a * cos(radians(120)), a * sin(radians(120))),
+      new Vector2(-a, 0),
+      new Vector2(a * cos(radians(240)), a * sin(radians(240))),
+      new Vector2(a * cos(radians(300)), a * sin(radians(300))),
+    ];
+    
+    
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new HexMesh(a, new Vector2(0, 0));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    //this.player.setRotation(random(0, 270));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new HexMesh(a, new Vector2(0, 0));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    this.win.setRotation(radians(random(40, 350)));
+
+    // These arrays hold the transformed positions.
+    this.uPPoly = [];
+    this.uWinPoly = [];
+  }
+}
+
+/**
+===============================================
+                   Level Infinity
+===============================================
+This is an infinite level generator. It will produce an infinite amount
+of randomized levels.
+*/
+class LevelInfinity extends Level {
+  constructor(iteration){
+    // Defines the time and name of the level.
+    super(30, "Level Infinity +" + iteration);
+    
+    this.playerPoly = [];
+    this.winPoly = [];
+    let points = random(3, 20);
+    for(let i = 0; i < points; i++){
+      let a = random(4, 8);
+      this.playerPoly.push(new Vector2(a * cos(((2*PI)/points)* i), a * sin(((2*PI)/points)* i)));
+      this.winPoly.push(new Vector2(a * cos(((2*PI)/points)* i), a * sin(((2*PI)/points)* i)));
+    }
+    
+    
+    // Picks a size for the object to be.
+    let randomSize = random(4, 5);
+    // Sets the player to a rectangle mesh.
+    this.player = new PolygonMesh(this.playerPoly, new Vector2(0, 0));
+    // Sets the player to be a random color.
+    this.player.material.set(new RGBA(random(0, 255), random(0, 255), random(0,255)), 0);
+    this.player.setScale(new Vector2(randomSize, randomSize));
+    
+    //this.player.setRotation(random(0, 270));
+    
+    // Sets the winner to a rectangle mesh.
+    this.win = new PolygonMesh(this.winPoly, new Vector2(0, 0));
+    // Sets the scale of the win object.
+    this.win.setScale(new Vector2(randomSize, randomSize));
+    this.win.setRotation(radians(random(40, 350)));
+
     // These arrays hold the transformed positions.
     this.uPPoly = [];
     this.uWinPoly = [];

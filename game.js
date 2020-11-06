@@ -36,6 +36,9 @@ let currentLevel;
 let isPlayerClicked = false;
 let gameOver = false;
 
+let isLevelInfinity = false;
+let infiniteIterationCount = 0;
+
 /**
   Setup the canvas.
 */
@@ -47,6 +50,14 @@ function setup() {
   renderList.push(mesh);
   
   // Add the first level to the level list.
+  // levelList.push(new LevelInfinity(0));
+  levelList.push(new LevelTen());
+  levelList.push(new LevelNine());
+  levelList.push(new LevelEight());
+  levelList.push(new LevelSeven());
+  levelList.push(new LevelSix());
+  levelList.push(new LevelFive());
+  levelList.push(new LevelFour());
   levelList.push(new LevelThree());
   levelList.push(new LevelTwo());
   levelList.push(new LevelOne());
@@ -81,6 +92,8 @@ let currentIndex = 0;
 function update(){
   if(gameState == GameState.PreStart){
     currentLevel = levelList.pop();
+    if(currentLevel == null)
+      currentLevel = new LevelInfinity(infiniteIterationCount++);
     renderList = [];
     gameState = GameState.PreAnimation;
     gameOverString = "";
@@ -125,6 +138,12 @@ function update(){
       currentIndex = 0;
       gameOverString = "";
     }
+    if(keyIsDown(RIGHT_ARROW)){
+      currentLevel.getPlayerMesh().rotation += radians(1);
+    }
+    if(keyIsDown(LEFT_ARROW)){
+      currentLevel.getPlayerMesh().rotation -= radians(1);
+    }
   }
   else if(gameState == GameState.WonAnimation){
     animationTimer -= deltaTime;
@@ -140,7 +159,7 @@ function update(){
     fill(0,255,0);
     noStroke();
     text(gameOverString, width/2-120, height/2);
-    if(currentIndex >= currentLevel.name.length && animationTimer < 0){
+    if(currentIndex >= "Level Cleared".length && animationTimer < 0){
       gameState = GameState.PreStart;
     }
   }
@@ -171,9 +190,9 @@ function setupLevel(lvl){
   renderList = [];
   renderList.push(lvl.getWinMesh());
   renderList.push(lvl.getPlayerMesh());
-  lvl.getPlayerMesh().setPosition(new Vector2(20, 20));
+  lvl.getPlayerMesh().setPosition(new Vector2(100, 100));
   // pick a random location for the win mesh.
-  lvl.getWinMesh().setPosition(new Vector2(random(100, 700), random(100, 300)));
+  lvl.getWinMesh().setPosition(new Vector2(random(200, 700), random(100, 300)));
 }
 
 function mousePressed(){
