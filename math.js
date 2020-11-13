@@ -1,4 +1,49 @@
 /**
+  =================================================================
+                               math.js
+  =================================================================
+  
+    This file contains the code for the math of the game.
+*/
+
+/**
+  A 2D Vector class.
+*/
+class Vector2{
+  constructor(x, y){
+    this.x = x;
+    this.y = y;
+  }
+  
+  getX(){
+    return this.x;
+  }
+  
+  getY(){
+    return this.y;
+  }
+  
+  setX(x){
+    this.x = x;
+  }
+  
+  setY(y){
+    this.y = y;
+  }
+  
+  /**
+    Add x and y to the vector
+    Note: This operation is non-mutating.
+    
+    @returns A new vector with the result.
+  */
+  add(x, y){
+    return new Vector2(this.x + x, this.y + y);
+  }
+  
+}
+
+/**
   This class represents an affine transformation matrix
   [1, 0, 0]
   [0, 1, 0]

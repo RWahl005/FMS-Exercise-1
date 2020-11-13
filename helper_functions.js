@@ -1,13 +1,18 @@
 /**
+  =================================================================
+                          helper_functions.js
+  =================================================================
+  
+    This file contains the code for functions that assist with the game. This includes
+    collision functions.
+*/
+
+/**
   This is an implementation of the Separated Axis Therom, which is a collision algorithm for
   polygons.
   
-  This is currently unused but may be used in the future.
-  
-  Note: this algorithm only works for convex polygons, not concave.
-  
-  @param {Array} poly1 - An array containing a list of vectors that make up the poloygon.
-  @param {Array} poly2 - An array containing a list of vectors that make up the second polygon.
+  @param {Vector2[]} poly1 - An array containing a list of vectors that make up the poloygon.
+  @param {Vector2[]} poly2 - An array containing a list of vectors that make up the second polygon.
   @returns If the two polygons collide.
 */
 function SAT(poly1, poly2){
@@ -48,8 +53,8 @@ function SAT(poly1, poly2){
 /**
   Compare Poly1 to Poly2 by checking to see if the majority of the shape overlaps.
   
-  @param {Array} poly1 - An array of vectors that define the polygon.
-  @param {Array} poly2 - An array of vectors that define the second polygon.
+  @param {Vector2[]} poly1 - An array of vectors that define the polygon.
+  @param {Vector2[]} poly2 - An array of vectors that define the second polygon.
 */
 function compare(poly1, poly2){
   // This goes through all of the polygon points and computes the distance.
@@ -68,14 +73,16 @@ function compare(poly1, poly2){
   return true;
 }
 
-function addToPoints(pointArray, vec){
-  let output = [];
-  for(let point of pointArray){
-    output.push(point.add(vec.x, vec.y));
-  }
-  return output;
-}
-
+/**
+  Transform points according to the inputed translation, rotation, and scale.
+  
+  The order of transformation is: Translate, Rotate, Scale
+  
+  @param {Vector2[]} points - The array of Vector2 points that needs to be transformed.
+  @param {Vector2} translation - The translation of the points.
+  @param {Number} rotation - The rotation of the points.
+  @param {Vector2} scale - The scale of the rotation.
+*/
 function transformPoints(points, translation, rotation, scale){
   let transformer = new AffineTransformation();
   transformer.translate(translation);

@@ -1,33 +1,11 @@
 /**
-  This is the basic Vector2 class.
+  =================================================================
+                               Engine.js
+  =================================================================
+  
+    This file contains the code for the basic functions of a render engine.
+    This render engine builds off of the P5.js draw system and is object oriented.
 */
-class Vector2{
-  constructor(x, y){
-    this.x = x;
-    this.y = y;
-  }
-  
-  getX(){
-    return this.x;
-  }
-  
-  getY(){
-    return this.y;
-  }
-  
-  setX(x){
-    this.x = x;
-  }
-  
-  setY(y){
-    this.y = y;
-  }
-  
-  add(x, y){
-    return new Vector2(this.x + x, this.y + y);
-  }
-  
-}
 
 /**
   This class stores RGBA values.
@@ -50,6 +28,7 @@ class RGBA{
 
 /**
   This class handles the Material (color, stroke) of a mesh.
+  The color, stroke width, and stroke color can be set.
 */
 class Material{
   constructor(color = new RGBA(), strokeWidth = 1, strokeColor = new RGBA(0,0,0)){
@@ -65,7 +44,7 @@ class Material{
 }
 
 /**
-The super class of all meshes.
+  The super class of all the meshes.
 */
 class Mesh{
   constructor(position, rotation = 0, size = new Vector2(0, 0), material = new Material()){
@@ -112,19 +91,28 @@ class Mesh{
     this.rotation += rotate;
   }
   
+  // This handles the basic rendering of a mesh including (visual) transformations.
   render(){
     resetMatrix();
     fill(this.material.color.r, this.material.color.g, this.material.color.b);
     strokeWeight(this.material.strokeWidth);
     stroke(this.material.strokeColor.r, this.material.strokeColor.g, this.material.strokeColor.b);
-    // translate(0, 0);
+    // Translate, scale, rotate (The order matters).
     translate(this.position.x, this.position.y);
     scale(this.scale.x, this.scale.y);
-    
     rotate(this.rotation);
   }
 
 }
+
+/**
+  ============
+  Meshes
+  ============
+  All of these meshes are deprecated (unused) except the
+  polygon mesh, Quad mesh, and Hexagon mesh.
+
+*/
 
 /**
 A rectangle mesh.
@@ -162,6 +150,7 @@ class QuadMesh extends Mesh{
 }
 
 class HexMesh extends Mesh{
+  // Create a hexagon with a radius a.
   constructor(a, position, rotation = 0){
     super(position, rotation);
     this.a = a;
@@ -180,7 +169,9 @@ class HexMesh extends Mesh{
   }
 }
 
+// Render a polygon.
 class PolygonMesh extends Mesh{
+  // points is an array of Vectors.
   constructor(points, position, rotation = 0){
     super(position, rotation);
     this.points = points;
